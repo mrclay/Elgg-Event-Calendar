@@ -43,10 +43,14 @@ td.ui-datepicker-unselectable {
 	color: #888888 !important;
 }
 
-#my_datepicker .week-highlight a {
+#my_datepicker .day-highlight a {
 	text-decoration: none;
 	color: #FFFFFF;
 	background: <?php echo $highlight_colour; ?>;
+}
+
+td.ui-datepicker-today a {
+	outline:1px solid <?php echo $highlight_colour; ?>;
 }
 
 .river_object_event_calendar_create {
@@ -159,9 +163,19 @@ table.event_calendar_paged_table th {
 	float: right;
 }
 
-li.event-calendar-filter-menu-show-only {
+li.event-calendar-filter-menu-show-only,
+li.event-calendar-filter-menu-show-only:hover {
 	border:0;
 	padding-top:.4em;
 	background:#fff;
 	margin:0 -.3em 0 1.5em;
+}
+
+div.event-calendar-loading {
+    background: url(<?php echo $vars['url']; ?>_graphics/ajax_loader.gif);
+    width:33px;
+    height:33px;
+    position:absolute;
+    left:7em;
+    top:7em;
 }
