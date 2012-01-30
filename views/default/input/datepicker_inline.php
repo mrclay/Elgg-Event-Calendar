@@ -22,7 +22,10 @@ if ($vars['group_guid']) {
 }
 
 if ($vars['mode'] == 'week') {
-	$selected_week = date('W', strtotime($vars['start_date'].' 13:00 UTC'))+1;
+	$selected_week = date('W', strtotime($vars['start_date'].' 13:00 UTC')) + 1;
+    if ($selected_week == 53) {
+        $selected_week = 1;
+    }
 } else {
 	$selected_week = '';
 }
@@ -74,6 +77,7 @@ $(function(){
      * @return Array [(bool) isSelectable, (string) cssClass]
      */
     function getRenderingSpec(date) {
+        /* @var Date date */
         var highlighted = [true, 'day-highlight'];
         if (mode === 'month') {
             if (date.getYear() === start_year && date.getMonth() === start_month) {
@@ -84,6 +88,9 @@ $(function(){
             // Move Sundays into the next week. Note: must use getDay() because date is in local time
             if (date.getDay() == 0) {
                 week_number += 1;
+                if (week_number == 53) {
+                    week_number = 1;
+                }
             }
             if (selected_week == week_number) {
                 return highlighted;
