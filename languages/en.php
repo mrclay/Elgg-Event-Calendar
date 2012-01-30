@@ -149,11 +149,11 @@
 	'event_calendar:spots_label' => "Spots",
 	'event_calendar:spots_description' => "How many people are allowed to add this event to their personal calendars?",
 	'event_calendar:open' => "Open",
-	'event_calendar:settings:add_users:title' => "Allow event creators to add their event to other personal calendars (requires autocomplete plugin).",
+	'event_calendar:settings:add_users:title' => "Allow event creators and site admins to add their event to other personal calendars.",
 	'event_calendar:add_user_label' => "Add users",
 	'event_calendar:add_user_description' => "Add this event to personal calendars by typing two or more characters in the above text autocomplete field to select a user. "
 		."You can add multiple users by clicking the \"+\" link. (You must submit this form to actually add the event to the calendars.)",		
-	'event_calendar:settings:add_users_notify:title' => "Notify users who have had an event added to their personal calendar by an admin or event creator.",
+	'event_calendar:settings:add_users_notify:title' => "Email users who have had an event added to their personal calendar by an admin or event creator.",
 	'event_calendar:add_users_notify:subject' => "A new event has been added to your personal calendar",
 	'event_calendar:add_users_notify:body' => "%s,\n\nThe \"%s\" event has been added to your calendar.\n\nYou can view it here: \n\n%s\n",
 		
@@ -213,9 +213,11 @@ You can manage calendar requests for this event here:
 	'event_calendar:add' => "Add",
 		
 	'feed:ical' => "iCal feed for this page",
+	'event_calendar:ical_popup_message' => "You can use the following URL to get an iCalendar feed of the public events from this listing page: ",
 	'event_calendar:ical_auth_file_name:title' => "Location of iCal authentication file on local file system (experimental - not needed for public feeds)",
 
 	'event_calendar:owner:permissions_error' => "You do not have permission to view that page.",
+	'event_calendar:feature_not_activated' => "This feature is not activated",
 		
 	'event_calendar:show_all' => "Show all",
 	'event_calendar:show_open' => "Show open",
@@ -226,7 +228,20 @@ You can manage calendar requests for this event here:
 	'event_calendar:listing_title:all' => "All events",
 	'event_calendar:listing_title:open' => "Open events",
 	'event_calendar:listing_title:mine' => "My calendar",
-	'event_calendar:listing_title:friends' => "Friends' calendars",		
+	'event_calendar:listing_title:friends' => "Friends' calendars",	
+	'event_calendar:manage_users:title' => "Manage subscribers for \"%s\"",
+	'event_calendar:manage_users:breadcrumb' => "Manage subscribers",
+	'event_calendar:manage_users:description' => "Add or remove events from personal calendars.",
+	'event_calendar:manage_users:unauthorized' => "Error: you are not authorised to manage personal calendars for this event.",
+	'event_calendar:add_to_group_members:success' => "This event has been added to the personal calendars of all group members.",
+	'event_calendar:add_to_group_members:error' => "Error: could not add this event to the personal calendars of group members.",
+	'event_calendar:remove_from_group_members:success' => "This event has been removed from the personal calendars of all group members.",
+	'event_calendar:remove_from_group_members:error' => "Error: could not remove this event from the personal calendars of group members.",
+	'event_calendar:add_to_group_members:button' => "Add to all",
+	'event_calendar:remove_from_group_members:button' => "Remove from all",
+		
+	'event_calendar:manage_subscribers:success' => "Personal calendars updated.",
+	'event_calendar:manage_subscribers:error' => "Error: could not update personal calendars.",
 		
 	/**
 	 * Event calendar river
@@ -236,6 +251,7 @@ You can manage calendar requests for this event here:
 
 	'river:update:object:event_calendar' => "%s updated the event %s",
 	'river:create:object:event_calendar' => "%s added the event %s",
+	'river:comment:object:event_calendar' => '%s commented on the event %s',
     'event_calendar:river:created' => "%s added",
     'event_calendar:river:updated' => "%s updated",
     'event_calendar:river:annotated1' => "%s added",

@@ -49,7 +49,6 @@ function event_calendar_init() {
 	// TODO - are the left and right values still relevant for Elgg 1.8?
 	$group_calendar = elgg_get_plugin_setting('group_calendar', 'event_calendar');
 	if (!$group_calendar || $group_calendar != 'no') {
-		// add blog link to
 		elgg_register_plugin_hook_handler('register', 'menu:owner_block', 'event_calendar_owner_block_menu');
 		$group_profile_display = elgg_get_plugin_setting('group_profile_display', 'event_calendar');
 		if (!$group_profile_display || $group_profile_display == 'right') {
@@ -98,6 +97,9 @@ function event_calendar_init() {
 	elgg_register_action("event_calendar/addtocalendar","$action_path/addtocalendar.php");
 	elgg_register_action("event_calendar/add_to_group","$action_path/add_to_group.php");
 	elgg_register_action("event_calendar/remove_from_group","$action_path/remove_from_group.php");
+	elgg_register_action("event_calendar/add_to_group_members","$action_path/add_to_group_members.php");
+	elgg_register_action("event_calendar/remove_from_group_members","$action_path/remove_from_group_members.php");
+	elgg_register_action("event_calendar/manage_subscribers","$action_path/manage_subscribers.php");
 
 }
 
@@ -105,8 +107,9 @@ function event_calendar_init() {
  * Add a menu item to an ownerblock
  */
 function event_calendar_owner_block_menu($hook, $type, $return, $params) {
+	elgg_load_library('elgg:event_calendar');
 	if (elgg_instanceof($params['entity'], 'group')) {
-		if ($params['entity']->event_calendar_enable != "no") {
+		if (event_calendar_activated_for_group($params['entity'])) {
 			$url = "event_calendar/group/{$params['entity']->guid}";
 			$item = new ElggMenuItem('event_calendar', elgg_echo('event_calendar:group'), $url);
 			$return[] = $item;
@@ -173,6 +176,9 @@ function event_calendar_page_handler($page) {
 			break;
 		case 'display_users':
 			echo event_calendar_get_page_content_display_users($page[1]);
+			break;
+		case 'manage_users':
+			echo event_calendar_get_page_content_manage_users($page[1]);
 			break;
 		case 'add':
 			if (isset($page[1])) {
@@ -268,38 +274,40 @@ function event_calendar_entity_menu_setup($hook, $type, $return, $params) {
 		return $return;
 	}
 	$user_guid = elgg_get_logged_in_user_guid();
-	if (event_calendar_personal_can_manage($entity,$user_guid)) {
-		if (event_calendar_has_personal_event($entity->guid,$user_guid)) {
-			$options = array(
-				'name' => 'personal_calendar',
-				'text' => elgg_echo('event_calendar:remove_from_the_calendar_menu_text'),
-				'title' => elgg_echo('event_calendar:remove_from_my_calendar'),
-				'href' => elgg_add_action_tokens_to_url("action/event_calendar/remove_personal?guid={$entity->guid}"),
-				'priority' => 150,
-			);
-			$return[] = ElggMenuItem::factory($options);
-		} else {
-			if (!event_calendar_is_full($entity->guid) && !event_calendar_has_collision($entity->guid,$user_guid)) {
+	if ($user_guid) {
+		if (event_calendar_personal_can_manage($entity,$user_guid)) {
+			if (event_calendar_has_personal_event($entity->guid,$user_guid)) {
 				$options = array(
 					'name' => 'personal_calendar',
-					'text' => elgg_echo('event_calendar:add_to_the_calendar_menu_text'),
-					'title' => elgg_echo('event_calendar:add_to_my_calendar'),
-					'href' => elgg_add_action_tokens_to_url("action/event_calendar/add_personal?guid={$entity->guid}"),
+					'text' => elgg_echo('event_calendar:remove_from_the_calendar_menu_text'),
+					'title' => elgg_echo('event_calendar:remove_from_my_calendar'),
+					'href' => elgg_add_action_tokens_to_url("action/event_calendar/remove_personal?guid={$entity->guid}"),
 					'priority' => 150,
 				);
-				$return[] = ElggMenuItem::factory($options);			}
+				$return[] = ElggMenuItem::factory($options);
+			} else {
+				if (!event_calendar_is_full($entity->guid) && !event_calendar_has_collision($entity->guid,$user_guid)) {
+					$options = array(
+						'name' => 'personal_calendar',
+						'text' => elgg_echo('event_calendar:add_to_the_calendar_menu_text'),
+						'title' => elgg_echo('event_calendar:add_to_my_calendar'),
+						'href' => elgg_add_action_tokens_to_url("action/event_calendar/add_personal?guid={$entity->guid}"),
+						'priority' => 150,
+					);
+					$return[] = ElggMenuItem::factory($options);			}
+			}
+		} else {
+			if (!event_calendar_has_personal_event($entity->guid,$user_guid) && !check_entity_relationship($user_guid, 'event_calendar_request', $entity->guid)) {
+				$options = array(
+					'name' => 'personal_calendar',
+					'text' => elgg_echo('event_calendar:make_request_title'),
+					'title' => elgg_echo('event_calendar:make_request_title'),
+					'href' => elgg_add_action_tokens_to_url("action/event_calendar/request_personal_calendar?guid={$entity->guid}"),
+					'priority' => 150,
+				);
+				$return[] = ElggMenuItem::factory($options);
+			}		
 		}
-	} else {
-		if (!event_calendar_has_personal_event($entity->guid,$user_guid) && !check_entity_relationship($user_guid, 'event_calendar_request', $entity->guid)) {
-			$options = array(
-				'name' => 'personal_calendar',
-				'text' => elgg_echo('event_calendar:make_request_title'),
-				'title' => elgg_echo('event_calendar:make_request_title'),
-				'href' => elgg_add_action_tokens_to_url("action/event_calendar/request_personal_calendar?guid={$entity->guid}"),
-				'priority' => 150,
-			);
-			$return[] = ElggMenuItem::factory($options);
-		}		
 	}
 	
 	$count = event_calendar_get_users_for_event($entity->guid,0,0,true);
@@ -331,11 +339,13 @@ function event_calendar_entity_menu_setup($hook, $type, $return, $params) {
 
 function event_calendar_entity_menu_prepare($hook, $type, $return, $params) {
 	// remove access level from listings
-	if (!elgg_in_context('event_calendar:view')) {
+	if (elgg_in_context('event_calendar') && !elgg_in_context('event_calendar:view')) {
 		$new_return = array();
-		foreach($return['default'] AS $item) {
-			if ($item->getName() != 'access') {
-				$new_return[] = $item;
+		if (isset($return['default']) && is_array($return['default'])) {
+			foreach($return['default'] AS $item) {
+				if ($item->getName() != 'access') {
+					$new_return[] = $item;
+				}
 			}
 		}
 		$return['default'] = $new_return;
