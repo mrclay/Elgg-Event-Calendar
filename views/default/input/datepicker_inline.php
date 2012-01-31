@@ -142,7 +142,7 @@ $(function(){
             var href = "<?php echo $link_bit; ?>".replace('%s', date.substring(0,10));
             if (mode === 'month') {
                 // switch to day view
-                href = href.replace(/\/month\//, '/day/');
+                href = href.replace(/\/month\b/, '/day');
             }
             location.href = href;
         },
